@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Students Average Record</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Body & Background */
+body {
+    font-family: 'Quicksand', sans-serif;
+    background: linear-gradient(135deg, #f3eaff, #e8d6ff);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Floating cute bubbles */
+.bubble {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: floatBubble linear infinite;
+}
+@keyframes floatBubble {
+    0% { transform: translateY(110vh) scale(1); opacity:0.6; }
+    50% { opacity: 0.9; }
+    100% { transform: translateY(-20vh) scale(1.2); opacity:0.6; }
+}
+
+/* Top-right name */
+#userName {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-weight: 600;
+    color: #8e24aa;
+    z-index: 2;
+    font-size: 16px;
+}
+
+/* Title */
+h1 {
+    margin-top: 60px;
+    text-align: center;
+    text-shadow: 1px 1px 3px #d1b3ff;
+    font-size: 26px;
+    z-index: 2;
+}
+
+/* Container */
+.container {
+    background: #ffffffdd;
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    width: 90%;
+    max-width: 700px;
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+.container:hover { transform: translateY(-5px); }
+
+/* Inputs */
+input[type="text"], input[type="number"], input[readonly] {
+    width: calc(100% - 80px);
+    padding: 12px 14px;
+    margin: 8px 0 15px 0;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    transition: border 0.3s, box-shadow 0.3s;
+}
+input:focus {
+    border: 2px solid #8e24aa;
+    box-shadow: 0 0 10px rgba(142,36,170,0.3);
+    outline: none;
+}
+input[readonly] { background: #f0e6ff; }
+
+/* Buttons */
+button {
+    background: linear-gradient(135deg, #8e24aa, #b26aff);
+    color: white;
+    border: none;
+    padding: 12px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 5px;
+    margin-top: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(142,36,170,0.4);
+}
+
+/* Subject container */
+.subject-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+    table-layout: fixed;
+    word-wrap: break-word;
+}
+table, th, td { border: 1px solid #d1b3ff; }
+th, td { padding: 10px; text-align: center; }
+tbody tr { opacity: 0; transform: translateY(-10px); animation: fadeIn 0.5s forwards; }
+tbody tr:hover { background: #f2e6ff; transition: background 0.3s; }
+
+.passed { color: green; font-weight: bold; transition: color 0.3s; }
+.failed { color: red; font-weight: bold; transition: color 0.3s; }
+
+@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+/* Responsive */
+@media (max-width: 600px) {
+    h1 { font-size: 20px; margin-top: 50px; }
+    #userName { font-size: 14px; top: 15px; right: 15px; }
+    button { width: 100%; margin-left: 0; margin-bottom: 10px; }
+    input[type="text"], input[type="number"], input[readonly] { width: 100%; font-size: 14px; }
+    table { font-size: 12px; }
+    th, td { padding: 8px; }
+    .subject-row { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<div id="userName">Mary Diane Pacardo - BSIT 3A</div>
+<h1>Students Average Record</h1>
+
+<div class="container">
+
+    <!-- Course & Section -->
+    <label>Course:</label>
+    <input type="text" id="course" placeholder="Enter course" required>
+    <label>Year/Section:</label>
+    <input type="text" id="section" placeholder="Enter year/section" required>
+
+    <hr>
+
+    <!-- Subjects -->
+    <h3>Subjects</h3>
+    <div id="subjects-container"></div>
+    <button type="button" onclick="addSubject()">Add Subject</button>
+
+    <hr>
+
+    <!-- Students -->
+    <h3>Students</h3>
+    <label>Student Name:</label>
+    <input type="text" id="studentName" placeholder="Enter student name" required>
+    <div id="grades-container"></div>
+    <label>Average:</label>
+    <input type="text" id="average" placeholder="Average will appear here" readonly>
+
+    <div>
+        <button type="button" onclick="addStudent()">Add Student</button>
+        <button type="button" onclick="clearAll()">Clear All Records</button>
+    </div>
+
+    <table id="studentTable">
+        <thead>
+            <tr id="table-header">
+                <th>Name</th>
+                <th>Average</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+</div>
+
+<script>
+// Floating bubbles
+for(let i=0;i<15;i++){
+    const bubble = document.createElement('div');
+    bubble.classList.add('bubble');
+    bubble.style.left = Math.random()*100 + 'vw';
+    bubble.style.width = bubble.style.height = (15 + Math.random()*30) + 'px';
+    bubble.style.background = `rgba(${Math.floor(Math.random()*200+50)},${Math.floor(Math.random()*150+50)},${Math.floor(Math.random()*200+50)},0.4)`;
+    bubble.style.animationDuration = (8 + Math.random()*12) + 's';
+    document.body.appendChild(bubble);
+}
+
+// Data
+let students = JSON.parse(localStorage.getItem('students')) || [];
+
+// Add subject with delete button
+function addSubject(name = '') {
+    const container = document.getElementById('subjects-container');
+    const row = document.createElement('div');
+    row.className = 'subject-row';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Enter subject name';
+    input.value = name;
+    input.className = 'subject';
+    input.addEventListener('input', () => { renderGradeInputs(); renderTableHeader(); });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.onclick = () => {
+        row.remove();
+        renderGradeInputs();
+        renderTableHeader();
+    };
+
+    row.appendChild(input);
+    row.appendChild(deleteBtn);
+    container.appendChild(row);
+
+    renderGradeInputs();
+    renderTableHeader();
+}
+
+// Render grade inputs for students
+function renderGradeInputs() {
+    const gradesContainer = document.getElementById('grades-container');
+    gradesContainer.innerHTML = '';
+    const subjectInputs = document.querySelectorAll('.subject');
+    subjectInputs.forEach((sub, index) => {
+        const label = document.createElement('label');
+        label.textContent = sub.value || `Subject ${index+1}:`;
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.placeholder = `Enter grade for ${sub.value || 'Subject '+(index+1)}`;
+        input.min = 0;
+        input.max = 100;
+        input.className = 'grade';
+        input.addEventListener('input', updateAverage);
+        gradesContainer.appendChild(label);
+        gradesContainer.appendChild(input);
+    });
+}
+
+// Update average
+function updateAverage() {
+    const gradeInputs = document.querySelectorAll('.grade');
+    if(gradeInputs.length === 0) return;
+    const grades = [...gradeInputs].map(g => parseFloat(g.value) || 0);
+    const avg = (grades.reduce((a,b)=>a+b,0)/grades.length).toFixed(2);
+    document.getElementById('average').value = avg;
+    gradeInputs.forEach(g=>{
+        if(g.value==='') g.style.color='#000';
+        else g.style.color=parseFloat(g.value)>=75?'green':'red';
+        g.style.fontWeight='bold';
+    });
+}
+
+// Add student
+function addStudent() {
+    const name = document.getElementById('studentName').value.trim();
+    const gradeInputs = document.querySelectorAll('.grade');
+    const grades = [...gradeInputs].map(g => parseFloat(g.value));
+    if(!name || grades.some(isNaN)) { alert("Please fill in all fields correctly!"); return; }
+    const avg = (grades.reduce((a,b)=>a+b,0)/grades.length).toFixed(2);
+    const status = avg >= 75 ? "Passed":"Failed";
+    const studentData = { name, grades, avg, status };
+    students.push(studentData);
+    localStorage.setItem('students', JSON.stringify(students));
+    displayStudents();
+    clearInputs();
+}
+
+// Display students table
+function displayStudents() {
+    const tbody = document.querySelector('#studentTable tbody');
+    tbody.innerHTML = '';
+    students.forEach(student => {
+        const row = document.createElement('tr');
+        const subjectHTML = student.grades.map(g => `<td class="${g>=75?'passed':'failed'}">${g}</td>`).join('');
+        row.innerHTML = `<td>${student.name}</td>${subjectHTML}<td>${student.avg}</td><td class="${student.status==='Passed'?'passed':'failed'}">${student.status}</td>`;
+        tbody.appendChild(row);
+    });
+}
+
+// Render table header
+function renderTableHeader() {
+    const headerRow = document.getElementById('table-header');
+    const subjectInputs = document.querySelectorAll('.subject');
+    let headerHTML = '<th>Name</th>';
+    subjectInputs.forEach(sub => { headerHTML += `<th>${sub.value || 'Subject'}</th>`; });
+    headerHTML += '<th>Average</th><th>Status</th>';
+    headerRow.innerHTML = headerHTML;
+}
+
+// Clear inputs
+function clearInputs() {
+    document.getElementById('studentName').value='';
+    document.getElementById('average').value='';
+    document.querySelectorAll('.grade').forEach(g=>{ g.value=''; g.style.color='#000'; g.style.fontWeight='normal'; });
+}
+
+// Clear all records
+function clearAll() {
+    if(confirm("Are you sure you want to delete all records?")){
+        students=[];
+        localStorage.removeItem('students');
+        displayStudents();
+    }
+}
+
+// Initialize
+renderGradeInputs();
+displayStudents();
+</script>
+</body>
+</html>
